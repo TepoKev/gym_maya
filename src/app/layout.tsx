@@ -1,21 +1,28 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
+import * as React from 'react';
+import type { Viewport } from 'next';
 
-const inter = Inter({ subsets: ["latin"] });
+import '@/styles/global.css';
 
-export const metadata: Metadata = {
-  title: "GYM MAYA",
-  description: "Sistema gestor para el gimnasio Maya",
-};
+import { UserProvider } from '@/contexts/user-context';
+import { LocalizationProvider } from '@/components/core/localization-provider';
+import { ThemeProvider } from '@/components/core/theme-provider/theme-provider';
 
-export default function RootLayout({
-  children,
-}: Readonly<{
+export const viewport = { width: 'device-width', initialScale: 1 } satisfies Viewport;
+
+interface LayoutProps {
   children: React.ReactNode;
-}>) {
+}
+
+export default function Layout({ children }: LayoutProps): React.JSX.Element {
   return (
     <html lang="es">
-      <body className={inter.className}>{children}</body>
+      <body>
+        <LocalizationProvider>
+          <UserProvider>
+            <ThemeProvider>{children}</ThemeProvider>
+          </UserProvider>
+        </LocalizationProvider>
+      </body>
     </html>
   );
 }

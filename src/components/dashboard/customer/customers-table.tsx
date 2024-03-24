@@ -1,23 +1,24 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Avatar from '@mui/material/Avatar';
-import Box from '@mui/material/Box';
-import Card from '@mui/material/Card';
-import Checkbox from '@mui/material/Checkbox';
-import Divider from '@mui/material/Divider';
-import Stack from '@mui/material/Stack';
-import Table from '@mui/material/Table';
-import TableBody from '@mui/material/TableBody';
-import TableCell from '@mui/material/TableCell';
-import TableHead from '@mui/material/TableHead';
-import TablePagination from '@mui/material/TablePagination';
-import TableRow from '@mui/material/TableRow';
-import Typography from '@mui/material/Typography';
+import * as React from "react";
+import Avatar from "@mui/material/Avatar";
+import Box from "@mui/material/Box";
+import Card from "@mui/material/Card";
+import Checkbox from "@mui/material/Checkbox";
+import Divider from "@mui/material/Divider";
+import Stack from "@mui/material/Stack";
+import Table from "@mui/material/Table";
+import TableBody from "@mui/material/TableBody";
+import TableCell from "@mui/material/TableCell";
+import TableHead from "@mui/material/TableHead";
+import TablePagination from "@mui/material/TablePagination";
+import TableRow from "@mui/material/TableRow";
+import Typography from "@mui/material/Typography";
 
-import { useSelection } from '@/hooks/use-selection';
-import { Button } from '@mui/material';
-import Link from 'next/link';
+import { useSelection } from "@/hooks/use-selection";
+import { Button } from "@mui/material";
+import Link from "next/link";
+import { Money } from "@phosphor-icons/react";
 
 function noop(): void {
   // do nothing
@@ -28,6 +29,8 @@ export interface Customer {
   nombre: string;
   apellido: string;
   email: string;
+  telefono: string;
+  imgPath: string;
 }
 
 interface CustomersTableProps {
@@ -47,15 +50,17 @@ export function CustomersTable({
     return rows.map((customer) => customer.id);
   }, [rows]);
 
-  const { selectAll, deselectAll, selectOne, deselectOne, selected } = useSelection(rowIds);
+  const { selectAll, deselectAll, selectOne, deselectOne, selected } =
+    useSelection(rowIds);
 
-  const selectedSome = (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
+  const selectedSome =
+    (selected?.size ?? 0) > 0 && (selected?.size ?? 0) < rows.length;
   const selectedAll = rows.length > 0 && selected?.size === rows.length;
 
   return (
     <Card>
-      <Box sx={{ overflowX: 'auto' }}>
-        <Table sx={{ minWidth: '800px' }}>
+      <Box sx={{ overflowX: "auto" }}>
+        <Table sx={{ minWidth: "800px" }}>
           <TableHead>
             <TableRow>
               <TableCell padding="checkbox">
@@ -72,8 +77,9 @@ export function CustomersTable({
                 />
               </TableCell>
               <TableCell>Nombre</TableCell>
-              <TableCell>Email</TableCell>
               <TableCell>Pagos</TableCell>
+              <TableCell>Email</TableCell>
+              <TableCell>Teléfono</TableCell>
             </TableRow>
           </TableHead>
           <TableBody>
@@ -95,14 +101,24 @@ export function CustomersTable({
                     />
                   </TableCell>
                   <TableCell>
-                    <Stack sx={{ alignItems: 'center' }} direction="row" spacing={2}>
-                      <Typography variant="subtitle2">{row.nombre} {row.apellido}</Typography>
+                    <Stack
+                      sx={{ alignItems: "center" }}
+                      direction="row"
+                      spacing={2}
+                    >
+                      <Avatar src={row.imgPath} />
+                      <Typography variant="subtitle2">
+                        {row.nombre} {row.apellido}
+                      </Typography>
                     </Stack>
                   </TableCell>
-                  <TableCell>{row.email}</TableCell>
                   <TableCell>
-                    <Link href={`/dashboard/clientes/${row.id}`}>Pay</Link>
+                    <Link href={`/dashboard/clientes/${row.id}`}>
+                      <Money size={32} />
+                    </Link>
                   </TableCell>
+                  <TableCell>{row.email}</TableCell>
+                  <TableCell>{row.telefono}</TableCell>
                 </TableRow>
               );
             })}

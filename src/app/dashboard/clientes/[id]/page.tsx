@@ -9,7 +9,10 @@ import {
   Button,
   Modal,
   Autocomplete,
+  Avatar,
 } from "@mui/material";
+import { Trash } from "@phosphor-icons/react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 interface Cliente {
@@ -17,17 +20,21 @@ interface Cliente {
   nombre: string;
   apellido: string;
   email: string;
+  telefono?: string;
+  imgPath?: string;
 }
 
 interface Pago {
   id: string;
   fecha: string;
-  monto: number;
+  montoConDescuento: number;
+  descuento: number;
 }
 
 interface Membresia {
   id: number;
   tipo: string;
+  costo: number;
 }
 
 export default function Page({ params }: { params: { id: string } }) {
@@ -39,6 +46,7 @@ export default function Page({ params }: { params: { id: string } }) {
     email: "",
   });
   const [monto, setMonto] = useState<string>("");
+  const [descuento, setDescuento] = useState<string>("");
   const [fechaPago, setFechaPago] = useState<string | "">("");
   const [membresia, setMembresia] = useState<Membresia | null>(null);
   const [membresias, setMembresias] = useState<Membresia[]>([]);
@@ -62,7 +70,7 @@ export default function Page({ params }: { params: { id: string } }) {
   };
 
   const handleGuardar = async () => {
-    const response = await fetch("/api/pagos", {
+    const response = await fetch("http://localhost:3000/api/pagos", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -92,7 +100,9 @@ export default function Page({ params }: { params: { id: string } }) {
 
   const fetchCliente = async (id: string) => {
     try {
-      const response = await fetch(`/api/clientes?id=${id}`);
+      const response = await fetch(
+        `http://localhost:3000/api/clientes?id=${id}`
+      );
       if (response.ok) {
         const data = await response.json();
         setCliente(data);
@@ -106,7 +116,7 @@ export default function Page({ params }: { params: { id: string } }) {
 
   const fetchPagos = async (id: string) => {
     try {
-      const response = await fetch(`/api/pagos?id=${id}`);
+      const response = await fetch(`http://localhost:3000/api/pagos?id=${id}`);
       if (response.ok) {
         const data = await response.json();
         setPagos(data);
@@ -125,30 +135,23 @@ export default function Page({ params }: { params: { id: string } }) {
       {cliente && (
         <div>
           <h2>Información del Cliente</h2>
+          <Avatar
+            src={cliente.imgPath}
+            alt={cliente.nombre}
+            style={{ width: "100px", height: "100px", marginBottom: "16px" }}
+          />
           <form>
             <div style={{ marginBottom: "16px" }}>
-              <TextField
-                label="Nombre"
-                value={cliente.nombre}
-                disabled
-                fullWidth
-              />
+              <TextField label="Nombre" value={cliente.nombre} fullWidth />
             </div>
             <div style={{ marginBottom: "16px" }}>
-              <TextField
-                label="Apellido"
-                value={cliente.apellido}
-                disabled
-                fullWidth
-              />
+              <TextField label="Apellido" value={cliente.apellido} fullWidth />
             </div>
             <div style={{ marginBottom: "16px" }}>
-              <TextField
-                label="Email"
-                value={cliente.email}
-                disabled
-                fullWidth
-              />
+              <TextField label="Teléfono" value={cliente.telefono} fullWidth />
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <TextField label="Email" value={cliente.email} fullWidth />
             </div>
           </form>
         </div>
@@ -182,8 +185,16 @@ export default function Page({ params }: { params: { id: string } }) {
             <div style={{ marginBottom: "16px" }}>
               <TextField
                 label="Monto"
-                value={monto}
+                value={membresia?.costo || monto}
                 onChange={(event) => setMonto(event.target.value)}
+                fullWidth
+              />
+            </div>
+            <div style={{ marginBottom: "16px" }}>
+              <TextField
+                label="Descuento"
+                value={descuento}
+                onChange={(event) => setDescuento(event.target.value)}
                 fullWidth
               />
             </div>
@@ -226,15 +237,29 @@ export default function Page({ params }: { params: { id: string } }) {
           <TableRow>
             <TableCell>Fecha</TableCell>
             <TableCell>Monto</TableCell>
-            {/* Agrega más columnas según los detalles que quieras mostrar del historial de pagos */}
+            <TableCell>Eliminar Pago</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
           {pagos.map((pago) => (
             <TableRow key={pago.id}>
               <TableCell>{pago.fecha}</TableCell>
-              <TableCell>{pago.monto}</TableCell>
-              {/* Agrega más celdas según los detalles que quieras mostrar del historial de pagos */}
+              <TableCell>{pago.montoConDescuento}</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => {
+                    fetch(`http://localhost:3000/api/pagos`, {
+                      method: "DELETE",
+                      body: JSON.stringify({ id: pago.id }),
+                    }).then(() => {
+                      console.log("Pago eliminado");
+                      fetchPagos(id);
+                    });
+                  }}
+                >
+                  <Trash size={32} />
+                </Button>
+              </TableCell>
             </TableRow>
           ))}
         </TableBody>

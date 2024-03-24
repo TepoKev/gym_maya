@@ -3,23 +3,29 @@ import { useState, useEffect } from "react";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Plus as PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
-import { Button, Modal, TextField } from "@mui/material";
+import { Button, Input, Modal, TextField } from "@mui/material";
 import { CustomersFilters } from "@/components/dashboard/customer/customers-filters";
 import { CustomersTable } from "@/components/dashboard/customer/customers-table";
+import { useForm } from "react-hook-form";
 
 type Customer = {
   id: number;
   nombre: string;
   apellido: string;
   email: string;
+  telefono: string;
+  imgPath: string;
 };
 
 export default function Page(): React.JSX.Element {
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm();
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [open, setOpen] = useState(false);
-  const [nombre, setNombre] = useState("");
-  const [apellido, setApellido] = useState("");
-  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
   const page = 0;
   const rowsPerPage = 5;
@@ -32,17 +38,19 @@ export default function Page(): React.JSX.Element {
     setOpen(true);
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
+  const onSubmit = handleSubmit(async (data) => {
+    const form = new FormData();
     setLoading(true);
+    form.append("nombre", data.nombre);
+    form.append("apellido", data.apellido);
+    form.append("email", data.email);
+    form.append("telefono", data.telefono);
+    if (data.imagen) form.append("imagen", data.imagen[0]);
 
     try {
       const response = await fetch("http://localhost:3000/api/clientes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ nombre, apellido, email }),
+        body: form,
       });
 
       if (!response.ok) {
@@ -61,7 +69,7 @@ export default function Page(): React.JSX.Element {
       console.error("Error al crear el cliente:", error);
       setLoading(false);
     }
-  };
+  });
 
   useEffect(() => {
     async function fetchCustomers() {
@@ -72,7 +80,6 @@ export default function Page(): React.JSX.Element {
     }
     fetchCustomers();
   }, []);
-
   return (
     <Stack spacing={3}>
       <Stack direction="row" spacing={3}>
@@ -100,37 +107,58 @@ export default function Page(): React.JSX.Element {
               }}
             >
               <h2>Nuevo Cliente</h2>
-              <form onSubmit={handleSubmit}>
+              <form onSubmit={onSubmit}>
                 <TextField
                   label="Nombre"
                   variant="outlined"
                   fullWidth
-                  value={nombre}
-                  onChange={(e) => setNombre(e.target.value)}
+                  {...register("nombre", {
+                    required: {
+                      value: true,
+                      message: "El campo de nombre es requerido!",
+                    },
+                  })}
                   style={{ marginBottom: "20px" }}
                 />
                 <TextField
                   label="Apellido"
                   variant="outlined"
                   fullWidth
-                  value={apellido}
-                  onChange={(e) => setApellido(e.target.value)}
+                  {...register("apellido", {
+                    required: {
+                      value: true,
+                      message: "El campo de apellido es requerido!",
+                    },
+                  })}
+                  style={{ marginBottom: "20px" }}
+                />
+                <TextField
+                  label="Teléfono"
+                  variant="outlined"
+                  fullWidth
+                  {...register("telefono")}
                   style={{ marginBottom: "20px" }}
                 />
                 <TextField
                   label="Email"
                   variant="outlined"
                   fullWidth
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  {...register("email")}
                   style={{ marginBottom: "20px" }}
                 />
+                <label>Imagen</label>
+                <Input
+                  type="file"
+                  fullWidth
+                  {...register("imagen")}
+                  style={{ marginBottom: "20px" }}
+                ></Input>
                 <Stack spacing={2} direction="row">
                   <Button
                     type="submit"
                     variant="contained"
                     color="primary"
-                    disabled={!nombre || !apellido || !email || loading}
+                    disabled={loading}
                   >
                     {loading ? "Creando..." : "Crear Cliente"}
                   </Button>
